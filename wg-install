@@ -58,15 +58,13 @@ echo \
   --restart unless-stopped \
   lscr.io/linuxserver/wireguard:latest
  
- echo "Docker is running"
- docker ps
  
  #COPYING CONFIG FILES
  
- CURRENT=$(pwd)
- cd ~
- mkdir wgclient
- docker cp wireguard:/config ~/wgclient
+
+cd ~
+mkdir wgclient
+docker cp wireguard:/config ~/wgclient
 cd ~/wgclient/config
 rm -r coredns templates server wg0.conf
 find . -maxdepth 1 -type d -exec zip -r {} {} \;
