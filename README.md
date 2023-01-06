@@ -1,0 +1,2 @@
+# wgscript
+wg azure script
