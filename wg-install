@@ -1,0 +1,80 @@
+__          _______ _____  ______ _____ _    _         _____  _____  
+ \ \        / /_   _|  __ \|  ____/ ____| |  | |  /\   |  __ \|  __ \ 
+  \ \  /\  / /  | | | |__) | |__ | |  __| |  | | /  \  | |__) | |  | |
+   \ \/  \/ /   | | |  _  /|  __|| | |_ | |  | |/ /\ \ |  _  /| |  | |
+    \  /\  /   _| |_| | \ \| |___| |__| | |__| / ____ \| | \ \| |__| |
+     \/  \/   |_____|_|  \_\______\_____|\____/_/    \_\_|  \_\_____/ 
+                                                                                                                                      
+ ::::::::  :::        :::::::::: :::    ::: 
+:+:    :+: :+:        :+:        :+:   :+:  
++:+    +:+ +:+        +:+        +:+  +:+   
++#+    +:+ +#+        +#++:++#   +#++:++    
++#+    +#+ +#+        +#+        +#+  +#+   
+#+#    #+# #+#        #+#        #+#   #+#  
+ ########  ########## ########## ###    ### 
+ 
+ VERSION 1.0.0
+ 06012023
+##############################
+##############################
+##############################
+
+#!/bin/bash
+
+## Upgrade + basic tools
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+ sudo apt update
+ sudo apt install -y  zip docker-ce docker-ce-cli containerd.io docker-compose --reinstall
+ 
+ docker run -d \
+  --name=wireguard \
+  --cap-add=NET_ADMIN \
+  --cap-add=SYS_MODULE \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e TZ=Europe/London \
+  -e SERVERPORT=51820 `#optional` \
+  -e PEERS=100 `#optional` \
+  -e PEERDNS=auto `#optional` \
+  -e INTERNAL_SUBNET=10.13.13.0 `#optional` \
+  -e ALLOWEDIPS=0.0.0.0/0 `#optional` \
+  -e LOG_CONFS=true `#optional` \
+  -p 51820:51820/udp \
+  -v /path/to/appdata/config:/config \
+  -v /lib/modules:/lib/modules `#optional` \
+  --sysctl="net.ipv4.conf.all.src_valid_mark=1" \
+  --restart unless-stopped \
+  lscr.io/linuxserver/wireguard:latest
+ 
+ echo "Docker is running"
+ docker ps
+ 
+ #COPYING CONFIG FILES
+ 
+ CURRENT=$(pwd)
+ cd ~
+ mkdir wgclient
+ docker cp wireguard:/config ~/wgclient
+cd ~/wgclient/config
+rm -r coredns templates server wg0.conf
+find . -maxdepth 1 -type d -exec zip -r {} {} \;
+find . -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
+
+
+
+ 
+ 
